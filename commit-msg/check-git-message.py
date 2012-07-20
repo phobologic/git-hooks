@@ -2,7 +2,6 @@
 
 import sys
 import os
-import tempfile
 from subprocess import call
 
 editor = os.environ['EDITOR']
@@ -10,6 +9,7 @@ message_file = sys.argv[1]
 # Used to figure out when we've reached the part in the commit message
 # where the errors go.
 error_header = '# GIT COMMIT MESSAGE FORMAT ERRORS:'
+
 
 def check_format_rules(lineno, line):
     """
@@ -31,6 +31,7 @@ def check_format_rules(lineno, line):
             return "E%d: No line should be over 72 characters long." % (
                     real_lineno,)
     return False
+
 
 while True:
     # Temporary storage for the commit message so we can recreate it
