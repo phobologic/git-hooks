@@ -1,34 +1,64 @@
 #!/usr/bin/python
-#
-# Useful for checking that your commit message follows the message format found
-# here: http://git-scm.com/book/ch5-2.html#Commit-Guidelines
-# 
-# Unfortunately you will lose your commit message if you fail, so this isn't
-# perfect yet.
-#
 
 import sys
+import os
+import tempfile
+from subprocess import call
 
-exit_code = 0
-with open(sys.argv[1]) as commit_msg:
-    for lineno, line in enumerate(commit_msg):
-        line = line.strip()
-        if lineno == 0:
-            if len(line) > 50:
-                exit_code = 1
-                print "# E%d: First line should be less than 50 " \
-                        "characters." % (lineno,)
-        elif lineno == 1:
-            if line:
-                exit_code = 1
-                print "# E%d: Second line should be empty." % (lineno,)
-        else:
-            if line.startswith('#'):
-                # ignore comment lines
-                continue
-            if len(line) > 72:
-                exit_code = 1
-                print "# E%d: No line should be over 72 characters long." % (
-                        lineno,)
+editor = os.environ['EDITOR']
+message_file = sys.argv[1]
+# Used to figure out when we've reached the part in the commit message
+# where the errors go.
+error_header = '# GIT COMMIT MESSAGE FORMAT ERRORS:'
 
-sys.exit(exit_code)
+def check_format_rules(lineno, line):
+    """
+    Given a line number and a line, compare them against a set of rules.  If it
+    it fails a given rule, return an error message.  If it passes all rules
+    then return false.
+    """
+    # Since enumerate starts at 0
+    real_lineno = lineno + 1
+    if lineno == 0:
+        if len(line) > 50:
+            return "E%d: First line should be less than 50 characters in " \
+                    "length." % (real_lineno,)
+    if lineno == 1:
+        if line:
+            return "E%d: Second line should be empty." % (real_lineno,)
+    if not line.startswith('#'):
+        if len(line) > 72:
+            return "E%d: No line should be over 72 characters long." % (
+                    real_lineno,)
+    return False
+
+while True:
+    # Temporary storage for the commit message so we can recreate it
+    # and then append errors if there are any.
+    commit_msg = list()
+    errors = list()
+    with open(message_file) as commit_fd:
+        for lineno, line in enumerate(commit_fd):
+            stripped_line = line.strip()
+            # Break out of the loop if we've hit the error header
+            if stripped_line == error_header:
+                break
+            commit_msg.append(line)
+            e = check_format_rules(lineno, stripped_line)
+            if e:
+                errors.append(e)
+    if errors:
+        with open(message_file, 'w') as commit_fd:
+            for line in commit_msg:
+                commit_fd.write(line)
+            commit_fd.write('%s\n' % (error_header,))
+            for error in errors:
+                commit_fd.write('#    %s\n' % (error,))
+        re_edit = raw_input('Invalid git commit message format.  Would you '
+                'like to re-edit it?  (If you answer no, your commit will '
+                'fail) [Y/n]')
+        if re_edit in ('N', 'n', 'NO', 'no', 'No', 'nO'):
+            sys.exit(1)
+        call('%s %s' % (editor, message_file), shell=True)
+        continue
+    break
