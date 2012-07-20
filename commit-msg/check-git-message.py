@@ -1,4 +1,13 @@
 #!/usr/bin/python
+#
+# Useful for checking that your commit message follows the message format found
+# here: http://git-scm.com/book/ch5-2.html#Commit-Guidelines
+# 
+# Unfortunately you will lose your commit message if you fail, so this isn't
+# perfect yet.
+#
+# Author: Michael Barret <loki77@gmail.com>
+#
 
 import sys
 
