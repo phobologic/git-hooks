@@ -6,8 +6,6 @@
 # Unfortunately you will lose your commit message if you fail, so this isn't
 # perfect yet.
 #
-# Author: Michael Barret
-#
 
 import sys
 
