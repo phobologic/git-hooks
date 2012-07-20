@@ -62,4 +62,6 @@ while True:
             sys.exit(1)
         call('%s %s' % (editor, message_file), shell=True)
         continue
+    # No errors (otherwise it would have either continued or exited) so lets
+    # break out of the while loop and exit cleanly
     break
